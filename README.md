@@ -64,7 +64,5 @@ Yellow | Slide switch toggle (state change) | `CircuitPlayground.slideSwitch()`
 ---
 
 
-1. Clone the repo:
-   ```bash
-   git clone https://github.com/your-username/Color-Catch-Memory-Game-CPX.git
+
 
