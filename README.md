@@ -21,11 +21,11 @@ Test your memory and reflexes by repeating increasingly difficult sequences of l
 
 ## Controls (Inputs)
 
-| Color   | Action                       | Input                         
-
-Red   | Left button only             | `CircuitPlayground.leftButton()`  
-Blue  | Right button only            | `CircuitPlayground.rightButton()` 
-Yellow | Slide switch toggle (state change) | `CircuitPlayground.slideSwitch()`  
+| Color   | Action                       | Input                          |
+|---------|------------------------------|--------------------------------|
+| 🔴 Red   | Left button only             | `CircuitPlayground.leftButton()`  |
+| 🔵 Blue  | Right button only            | `CircuitPlayground.rightButton()` |
+| 🟡 Yellow| Slide switch toggle (state change) | `CircuitPlayground.slideSwitch()`  |
 
 ---
 
