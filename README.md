@@ -23,9 +23,9 @@ Test your memory and reflexes by repeating increasingly difficult sequences of l
 
 | Color   | Action                       | Input                          |
 |---------|------------------------------|--------------------------------|
-| 🔴 Red   | Left button only             | `CircuitPlayground.leftButton()`  |
-| 🔵 Blue  | Right button only            | `CircuitPlayground.rightButton()` |
-| 🟡 Yellow| Slide switch toggle (state change) | `CircuitPlayground.slideSwitch()`  |
+| Red   | Left button only             | `CircuitPlayground.leftButton()`  |
+| Blue  | Right button only            | `CircuitPlayground.rightButton()` |
+| Yellow| Slide switch toggle (state change) | `CircuitPlayground.slideSwitch()`  |
 
 ---
 
