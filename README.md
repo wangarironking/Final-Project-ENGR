@@ -1,68 +1,69 @@
-# Color Catch Memory Game (Arduino CPX)
+# Color Catch Memory (Adafruit Circuit Playground Express Game)
 
-A Simon-style memory game built for the Adafruit Circuit Playground Express (CPX) board.  
-Test your memory and reflexes by repeating increasingly difficult sequences of light and sound using button and switch inputs!
-
----
-
-## Game Concept
-
-**Color Catch** is a pattern memory game where the CPX lights up a sequence of colored LEDs and plays tones. Your task is to **repeat the sequence using the correct input controls**. The game becomes more challenging with each level.
+**Color Catch Memory** is a memory-based reaction game built for the Adafruit Circuit Playground Express (CPX). Players must watch a sequence of colors and sounds, then replicate them using button presses and the slide switch. The sequence grows longer with each level.
 
 ---
 
-## Objective
+## 🕹️ Game Overview
 
-- Memorize and repeat the correct sequence of colors.
-- Each round adds a new step to the sequence.
-- The game ends if a mistake is made or you reach the final level.
+The CPX displays a pattern of red, blue, and yellow using its onboard LEDs and sound. The player repeats the pattern using:
+- **Left Button A** → Red
+- **Right Button B** → Blue
+- **Slide Switch Toggle** → Yellow
 
----
-
-## Controls (Inputs)
-
-| Color   | Action                       | Input                          |
-|---------|------------------------------|--------------------------------|
-| Red   | Left button only             | `CircuitPlayground.leftButton()`  |
-| Blue  | Right button only            | `CircuitPlayground.rightButton()` |
-| Yellow| Slide switch toggle (state change) | `CircuitPlayground.slideSwitch()`  |
+The game gets progressively harder with longer patterns up to 5 levels.
 
 ---
 
-## Outputs
+## 🎯 Objective
 
-- **LEDs** display custom animations for each color (red pulse, blue sparkle, yellow ripple).
-- **Speaker** plays distinct tones for each color and melodies for success/failure.
-- **Serial Monitor** provides game status updates and final score.
+Correctly repeat all the randomly generated color patterns across 5 levels without making a mistake. If you enter the wrong pattern, the game ends with an error tone and red flash.
 
 ---
 
-## Game Rules
+## 🔁 Game Flow
 
-1. Press **A (left button)** to start the game.
-2. A sequence of colors will play with lights and sounds.
-3. Repeat the sequence using:
-   - A for Red
-   - B for Blue
-   - Toggle the switch for Yellow
-4. If your input is correct:
-   - You advance to the next level.
-   - Score increases by 1.
-5. If incorrect:
-   - A red flash and low tone will play.
-   - The game ends and your score is shown.
-6. Beat all 5 levels to win!
-
----
-
-## Requirements
-
-- Adafruit Circuit Playground Express (CPX)
-- Arduino IDE with `Adafruit_CircuitPlayground` library
-- USB cable for uploading
+1. Press **Button A** to start.
+2. The game generates a color sequence for the current level.
+3. The player watches and listens to the pattern.
+4. The player inputs the same pattern using:
+   - Button A for red
+   - Button B for blue
+   - Slide switch for yellow
+5. If correct:
+   - Progress to the next level.
+   - LEDs flash green and a tone plays.
+6. If incorrect:
+   - The game ends.
+   - LEDs flash red and an error tone plays.
+7. Win the game by completing all 5 levels.
 
 ---
 
+## 🎮 Controls
 
+| Input               | Action        | Color |
+|--------------------|---------------|-------|
+| Button A (left)    | Input "Red"   | 🔴     |
+| Button B (right)   | Input "Blue"  | 🔵     |
+| Slide Switch       | Input "Yellow"| 🟡     |
 
+Interrupts are used to handle these inputs smoothly during gameplay.
 
+---
+
+## 🔊 Output & Feedback
+
+- **Visual**: LEDs flash red, blue, or yellow based on the current pattern.
+- **Audio**: Tones accompany each color (e.g., 440 Hz for red).
+- **Success**: A short victory melody plays when all levels are completed.
+- **Failure**: An error tone and red LED flash on mismatch.
+
+---
+
+## 🔧 Technical Features
+
+- Uses **interrupts** for responsive input.
+- Incorporates **LED animations** and tones for immersive feedback.
+- Game logic managed with arrays and level progression.
+- Debounce logic and cle
