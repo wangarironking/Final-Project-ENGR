@@ -12,253 +12,259 @@ bool gameOver = false;   // Flag indicating if the game has ended due to a wrong
 
 bool lastSwitchState;    // Records the most recent state of the slide switch (used to detect changes)
 
-
 // Volatile flags for interrupt-driven inputs — these get triggered immediately by hardware events
 volatile bool slideToggled = false;     // Becomes true when the slide switch is toggled
 volatile bool leftButtonPressed = false; // Becomes true when button A is pressed
 volatile bool rightButtonPressed = false; // Becomes true when button B is pressed
 
-
+// --------------------------------------------------
+// setup(): Initializes hardware and interrupt setup
+// --------------------------------------------------
 void setup() {
-  Serial.begin(9600);  // Start serial communication for debugging output
-  CircuitPlayground.begin();  // Initialize the Circuit Playground's hardware components
+  Serial.begin(9600);
+  CircuitPlayground.begin();
+  randomSeed(analogRead(A0));
+  lastSwitchState = CircuitPlayground.slideSwitch();
 
-  randomSeed(analogRead(A0));  // Randomize the seed using analog noise to make sequences unpredictable
-  lastSwitchState = CircuitPlayground.slideSwitch();  // Record initial state of the slide switch
+  attachInterrupt(digitalPinToInterrupt(7), slideISR, CHANGE);
+  attachInterrupt(digitalPinToInterrupt(4), leftButtonISR, FALLING);
+  attachInterrupt(digitalPinToInterrupt(5), rightButtonISR, FALLING);
 
-  // Attach interrupt functions to respond to inputs immediately when triggered
-  attachInterrupt(digitalPinToInterrupt(7), slideISR, CHANGE);       // Call slideISR when the slide switch changes state
-  attachInterrupt(digitalPinToInterrupt(4), leftButtonISR, FALLING); // Call leftButtonISR when button A is pressed
-  attachInterrupt(digitalPinToInterrupt(5), rightButtonISR, FALLING); // Call rightButtonISR when button B is pressed
-
-  Serial.println("Color Catch Memory: Press A to start");  // Instruction message shown in Serial Monitor
+  Serial.println("Color Catch Memory: Press A to start");
 }
 
-
+// --------------------------------------------------
+// loop(): Waits for user to press A to start/restart
+// --------------------------------------------------
 void loop() {
-  // Start the game when the user presses button A
   if (leftButtonPressed) {
-    leftButtonPressed = false;  // Reset the flag
-    resetGame();     // Clear previous game state and start fresh
-    playGame();      // Enter the main game loop
-    Serial.println("Press A to play again");  // After the game ends, prompt to restart
+    leftButtonPressed = false;
+    resetGame();
+    playGame();
+    Serial.println("Press A to play again");
   }
 }
 
-
-// 
-// INTERRUPT HANDLERS
-// These functions are triggered immediately by input hardware (button/switch)
-// 
-
+// --------------------------------------------------
+// slideISR(): Sets flag when slide switch changes
+// --------------------------------------------------
 void slideISR() {
-  slideToggled = true;  // Set the flag when the slide switch changes
+  slideToggled = true;
 }
 
+// --------------------------------------------------
+// leftButtonISR(): Sets flag when button A is pressed
+// --------------------------------------------------
 void leftButtonISR() {
-  leftButtonPressed = true;  // Set the flag when button A is pressed
+  leftButtonPressed = true;
 }
 
+// --------------------------------------------------
+// rightButtonISR(): Sets flag when button B is pressed
+// --------------------------------------------------
 void rightButtonISR() {
-  rightButtonPressed = true; // Set the flag when button B is pressed
+  rightButtonPressed = true;
 }
 
-
-// 
-// GAME LOGIC
-// 
-
+// --------------------------------------------------
+// resetGame(): Resets game state and shows white flash
+// --------------------------------------------------
 void resetGame() {
-  level = 1;                           // Reset to level 1
-  score = 0;                           // Reset score
-  gameOver = false;                   // Clear game over status
-  lastSwitchState = CircuitPlayground.slideSwitch();  // Update the known switch state
-  flashWhite();                       // Flash white LEDs to indicate reset
-  delay(500);                         // Wait briefly
+  level = 1;
+  score = 0;
+  gameOver = false;
+  lastSwitchState = CircuitPlayground.slideSwitch();
+  flashWhite();
+  delay(500);
 }
 
+// --------------------------------------------------
+// playGame(): Main loop for generating and checking sequences
+// --------------------------------------------------
 void playGame() {
-  // Main game loop — runs until max level reached or player makes a mistake
   while (level <= MAX_SEQUENCE_LENGTH && !gameOver) {
-    generateSequence();      // Create a new pattern based on the current level
-    playLevelIntro(level);   // Play tones to indicate level number
-    showSequence();          // Show the pattern to the user
-    getUserInput();          // Collect the user's input
-    checkUserInput();        // Compare input to the correct pattern
-    delay(1000);             // Short pause before next level
+    generateSequence();
+    playLevelIntro(level);
+    showSequence();
+    getUserInput();
+    checkUserInput();
+    delay(1000);
   }
 
-  // If all levels completed successfully
   if (!gameOver) {
-    successMelody();         // Play celebratory melody
-    Serial.print("You won! Final Score: ");  // Show final score
+    successMelody();
+    Serial.print("You won! Final Score: ");
     Serial.println(score);
   }
 }
 
-
-// 
-// GAME COMPONENTS
-// 
-
+// --------------------------------------------------
+// generateSequence(): Creates random color pattern for the level
+// --------------------------------------------------
 void generateSequence() {
   for (int i = 0; i < level; i++) {
-    sequence[i] = random(3);  // Generate a random number: 0 = red, 1 = blue, 2 = yellow
+    sequence[i] = random(3);
   }
 }
 
+// --------------------------------------------------
+// showSequence(): Displays color/sound pattern to the player
+// --------------------------------------------------
 void showSequence() {
   for (int i = 0; i < level; i++) {
-    playPattern(sequence[i]);          // Display and play pattern element
-    delay(500);                        // Wait before turning off LEDs
-    CircuitPlayground.clearPixels();   // Turn off all LEDs
-    delay(500);                        // Wait before showing next
+    playPattern(sequence[i]);
+    delay(500);
+    CircuitPlayground.clearPixels();
+    delay(500);
   }
 }
 
-
-// 
-// INPUT COLLECTION (with flags)
-//
-
+// --------------------------------------------------
+// getUserInput(): Captures user inputs and maps them to colors
+// --------------------------------------------------
 void getUserInput() {
   for (int i = 0; i < level; i++) {
-    bool got = false;  // Keeps looping until a valid input is detected
+    bool got = false;
 
     while (!got) {
       if (leftButtonPressed && !rightButtonPressed) {
-        userInput[i] = 0;          // Register red (button A)
-        playPattern(0);            // Give feedback
+        userInput[i] = 0;
+        playPattern(0);
         leftButtonPressed = false;
         got = true;
       } else if (rightButtonPressed && !leftButtonPressed) {
-        userInput[i] = 1;          // Register blue (button B)
+        userInput[i] = 1;
         playPattern(1);
         rightButtonPressed = false;
         got = true;
       } else if (slideToggled) {
-        delay(5);                  // Debounce the switch
+        delay(5);
         slideToggled = false;
-        userInput[i] = 2;          // Register yellow (slide switch)
+        userInput[i] = 2;
         playPattern(2);
-        lastSwitchState = CircuitPlayground.slideSwitch();  // Update last switch state
+        lastSwitchState = CircuitPlayground.slideSwitch();
         got = true;
       }
 
-      delay(50);  // Debounce delay to prevent false triggers
+      delay(50);
     }
 
-    CircuitPlayground.clearPixels();  // Turn off LEDs after each input
-    delay(300);  // Pause between inputs
+    CircuitPlayground.clearPixels();
+    delay(300);
   }
 }
 
-
-// 
-// RESPONSE CHECKING
-// 
-
+// --------------------------------------------------
+// checkUserInput(): Compares user input to correct sequence
+// --------------------------------------------------
 void checkUserInput() {
   for (int i = 0; i < level; i++) {
     if (userInput[i] != sequence[i]) {
-      gameOver = true;  // End game if any input doesn't match
+      gameOver = true;
       CircuitPlayground.clearPixels();
-      CircuitPlayground.playTone(200, 500);  // Error sound
-      flashColor(255, 0, 0);                 // Red flash = error
+      CircuitPlayground.playTone(200, 500);
+      flashColor(255, 0, 0);
       Serial.print("Game Over. Score: ");
       Serial.println(score);
       return;
     }
   }
 
-  // If input is correct:
-  score++;                 // Add to score
-  level++;                 // Move to next level
-  CircuitPlayground.playTone(800, 150);  // Success tone
-  flashColor(0, 255, 0);   // Green flash = correct
+  score++;
+  level++;
+  CircuitPlayground.playTone(800, 150);
+  flashColor(0, 255, 0);
 }
 
-
-// 
-// VISUAL AND AUDIO FEEDBACK
-// 
-
+// --------------------------------------------------
+// flashColor(): Lights all LEDs to specified color briefly
+// --------------------------------------------------
 void flashColor(int r, int g, int b) {
   for (int i = 0; i < 10; i++) {
-    CircuitPlayground.setPixelColor(i, r, g, b);  // Set all 10 LEDs to the given color
+    CircuitPlayground.setPixelColor(i, r, g, b);
   }
-  delay(300);                // Keep the color on briefly
-  CircuitPlayground.clearPixels();  // Turn LEDs off
+  delay(300);
+  CircuitPlayground.clearPixels();
 }
 
+// --------------------------------------------------
+// flashWhite(): Convenience function for white flash
+// --------------------------------------------------
 void flashWhite() {
-  flashColor(255, 255, 255);  // White flash = reset signal
+  flashColor(255, 255, 255);
 }
 
+// --------------------------------------------------
+// playPattern(): Plays specific animation/sound for input color
+// --------------------------------------------------
 void playPattern(int c) {
-  // Selects the appropriate LED animation and tone based on the pattern value
   switch (c) {
-    case 0: sweepRed(); break;      // Red = button A
-    case 1: sparkleBlue(); break;   // Blue = button B
-    case 2: rippleYellow(); break;  // Yellow = slide switch
+    case 0: sweepRed(); break;
+    case 1: sparkleBlue(); break;
+    case 2: rippleYellow(); break;
   }
 }
 
-
-// Red animation: flashes LEDs 0, 4, and 8 in sequence
+// --------------------------------------------------
+// sweepRed(): Red animation and sound (LEDs 0, 4, 8)
+// --------------------------------------------------
 void sweepRed() {
   const int leds[3] = {0, 4, 8};
   for (int p = 0; p < 3; p++) {
     for (int j = 0; j < 3; j++) {
-      CircuitPlayground.setPixelColor(leds[j], 255, 0, 0);  // Set to red
+      CircuitPlayground.setPixelColor(leds[j], 255, 0, 0);
     }
-    CircuitPlayground.playTone(440, 100);  // Play red tone
+    CircuitPlayground.playTone(440, 100);
     delay(200);
     for (int j = 0; j < 3; j++) {
-      CircuitPlayground.setPixelColor(leds[j], 0, 0, 0);    // Turn off
+      CircuitPlayground.setPixelColor(leds[j], 0, 0, 0);
     }
     delay(200);
   }
 }
 
-
-// Blue animation: sparkles one random LED at a time
+// --------------------------------------------------
+// sparkleBlue(): Blue sparkle animation with sound
+// --------------------------------------------------
 void sparkleBlue() {
   for (int i = 0; i < 4; i++) {
     CircuitPlayground.clearPixels();
-    CircuitPlayground.setPixelColor(random(10), 0, 0, 255);  // Set one LED to blue
-    CircuitPlayground.playTone(660, 100);  // Play blue tone
+    CircuitPlayground.setPixelColor(random(10), 0, 0, 255);
+    CircuitPlayground.playTone(660, 100);
     delay(200);
   }
-  CircuitPlayground.clearPixels();  // Turn off all LEDs
+  CircuitPlayground.clearPixels();
 }
 
-
-// Yellow animation: lights up LEDs from edges inward
+// --------------------------------------------------
+// rippleYellow(): Yellow ripple animation and sound
+// --------------------------------------------------
 void rippleYellow() {
   for (int i = 0; i < 5; i++) {
-    CircuitPlayground.setPixelColor(i, 255, 255, 0);         // Yellow from left
-    CircuitPlayground.setPixelColor(9 - i, 255, 255, 0);     // Yellow from right
+    CircuitPlayground.setPixelColor(i, 255, 255, 0);
+    CircuitPlayground.setPixelColor(9 - i, 255, 255, 0);
     delay(200);
   }
-  CircuitPlayground.playTone(740, 150);  // Play yellow tone
-  CircuitPlayground.clearPixels();       // Clear LEDs after animation
+  CircuitPlayground.playTone(740, 150);
+  CircuitPlayground.clearPixels();
 }
 
-
-// Plays a tone sequence based on the current level
+// --------------------------------------------------
+// playLevelIntro(): Plays tones to indicate level number
+// --------------------------------------------------
 void playLevelIntro(int lvl) {
-  int notes[] = {262, 330, 392, 523, 659};  // Array of tones for levels 1–5
+  int notes[] = {262, 330, 392, 523, 659};
   for (int i = 0; i < lvl && i < 5; i++) {
-    CircuitPlayground.playTone(notes[i], 120);  // Play one tone per level count
+    CircuitPlayground.playTone(notes[i], 120);
     delay(200);
   }
 }
 
-
-// Victory melody for successful completion of all levels
+// --------------------------------------------------
+// successMelody(): Plays final win melody
+// --------------------------------------------------
 void successMelody() {
-  int notes[] = {659, 783, 880, 1047};  // Final celebration melody
+  int notes[] = {659, 783, 880, 1047};
   for (int i = 0; i < 4; i++) {
     CircuitPlayground.playTone(notes[i], 120);
     delay(150);
