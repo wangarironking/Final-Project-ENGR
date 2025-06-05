@@ -46,10 +46,10 @@ void loop() {
 }
 
 
-// —————————————————————
+// 
 // INTERRUPT HANDLERS
 // These functions are triggered immediately by input hardware (button/switch)
-// —————————————————————
+// 
 
 void slideISR() {
   slideToggled = true;  // Set the flag when the slide switch changes
@@ -64,9 +64,9 @@ void rightButtonISR() {
 }
 
 
-// —————————————————————
+// 
 // GAME LOGIC
-// —————————————————————
+// 
 
 void resetGame() {
   level = 1;                           // Reset to level 1
@@ -97,9 +97,9 @@ void playGame() {
 }
 
 
-// —————————————————————
+// 
 // GAME COMPONENTS
-// —————————————————————
+// 
 
 void generateSequence() {
   for (int i = 0; i < level; i++) {
@@ -117,9 +117,9 @@ void showSequence() {
 }
 
 
-// —————————————————————
+// 
 // INPUT COLLECTION (with flags)
-// —————————————————————
+//
 
 void getUserInput() {
   for (int i = 0; i < level; i++) {
@@ -154,9 +154,9 @@ void getUserInput() {
 }
 
 
-// —————————————————————
+// 
 // RESPONSE CHECKING
-// —————————————————————
+// 
 
 void checkUserInput() {
   for (int i = 0; i < level; i++) {
@@ -179,9 +179,9 @@ void checkUserInput() {
 }
 
 
-// —————————————————————
+// 
 // VISUAL AND AUDIO FEEDBACK
-// —————————————————————
+// 
 
 void flashColor(int r, int g, int b) {
   for (int i = 0; i < 10; i++) {
